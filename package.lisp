@@ -25,4 +25,8 @@
   (:export :gamma
            :nemes-approximation
            :spouge-approximation
-           :windschitl-approximation))
+           :windschitl-approximation
+
+           :beta
+           :beta-gamma-identity
+           :stirling-approximation))
