@@ -19,40 +19,36 @@
 ;;;; DEALINGS IN THE SOFTWARE.
 
 
-;;;; Code for approximations of the Gauss hypergeometric function.
+;;;; Code for approximations of the Appell hypergeometric function.
 ;;;; TODO
 ;;;; Date: 27/09/2015
 
 (in-package :cl-mathspecialfunctions)
 
-;;; Computes a partial summation of the hypergeometric series. The
-;;; number of terms can be specified (default is 20 terms.)
-;;;
-;;; Note: This series only converges for |z| < 1.
-(defun hypergeometric-series (a b c z &optional (num-terms 20))
-  "Returns a partial summation of the Hypergeometric series."
-  ;; Each term in the series is a ratio of factorials in a, b and c,
-  ;; multiplied by a power of z and divided by a factorial. We can
-  ;; keep track of termwise results and calculate the partial sum
-  ;; imperatively to speed things up.
-  (let ((partial-sum 1)
-        (term 1))
-    (loop for j from 1 to num-terms do
-         (setf term (* term
-                       (/ (* (+ a j -1) (+ b j -1)) (+ c j -1))
-                       z
-                       (/ 1 j)))
-         (setf partial-sum (+ partial-sum term)))
-    partial-sum))
-
-;;; The Gauss Hypergeometric function, 2F1(a,b,c,z). Takes as an optional
-;;; parameter a function that computes an approximation according to
-;;; some scheme.
+;;; The Appell Hypergeometric function, F1(a,b,bb,c,x,y). We can compute
+;;; this as a truncation of an infinite sum of Gauss hypergeometric
+;;; functions -- the given parameter num-terms specifies how many terms
+;;; of the summation to use (default is 20).
 ;;;
 ;;; Code Usage Examples:
 ;;;
 ;;;
-(defun hypergeometric-gauss (a b c z
-                             &optional
-                               (approx-scheme #'hypergeometric-series))
-  (funcall approx-scheme a b c z))
+(defun hypergeometric-appell (a b bb c x y &optional (num-terms 20))
+  "Returns Appell's Hypergeometric function, F1(a,b,bb,c,x,y)."
+  ;; As each term in the series contains a ratio of factorials in a, b
+  ;; and c, we can keep track of the previous term each time and update
+  ;; it, instead of computing factorials each time.
+  (let ((partial-sum (hypergeometric-gauss a bb c y))
+        (abcx-term 1))
+    (loop for m from 1 to num-terms do
+         (setf abcx-term (* abcx-term
+                            (/ (* (+ a m -1) (+ b m -1)) (+ c m -1))
+                            x
+                            (/ 1 m)))
+         (setf partial-sum
+               (+ partial-sum
+                  (* abcx-term
+                     (hypergeometric-gauss (+ a m) bb (+ c m) y)))))
+    partial-sum))
+         
+         
